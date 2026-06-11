@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mail Sender</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --border: #2a2d3e;
+      --accent: #6c63ff;
+      --accent-glow: rgba(108, 99, 255, 0.3);
+      --text: #e8eaf0;
+      --muted: #8b8fa8;
+      --success: #22c55e;
+      --error: #ef4444;
+      --input-bg: #12141e;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background-image: radial-gradient(ellipse at 20% 20%, rgba(108,99,255,0.08) 0%, transparent 60%),
+                        radial-gradient(ellipse at 80% 80%, rgba(108,99,255,0.05) 0%, transparent 60%);
+    }
+
+    .card {
+      width: 100%;
+      max-width: 520px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px 36px;
+      box-shadow: 0 0 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(108,99,255,0.1);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+
+    .logo-icon {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, var(--accent), #9b8ff5);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .subtitle {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 0 0 28px 0;
+    }
+
+    .section-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--accent);
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      margin-bottom: 7px;
+    }
+
+    input, textarea {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 14px;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus, textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    input::placeholder, textarea::placeholder {
+      color: #444760;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    .pass-note {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    .pass-note a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      margin-top: 10px;
+      background: linear-gradient(135deg, var(--accent), #9b8ff5);
+      border: none;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.2px;
+      transition: opacity 0.2s, transform 0.1s, box-shadow 0.2s;
+      box-shadow: 0 4px 20px var(--accent-glow);
+    }
+
+    .btn:hover { opacity: 0.92; box-shadow: 0 6px 28px var(--accent-glow); }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .status {
+      margin-top: 18px;
+      padding: 13px 16px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      display: none;
+      line-height: 1.5;
+    }
+
+    .status.success {
+      background: rgba(34,197,94,0.12);
+      border: 1px solid rgba(34,197,94,0.3);
+      color: var(--success);
+    }
+
+    .status.error {
+      background: rgba(239,68,68,0.12);
+      border: 1px solid rgba(239,68,68,0.3);
+      color: var(--error);
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">
+      <div class="logo-icon">✉️</div>
+      <div>
+        <h1>Mail Sender</h1>
+        <div class="subtitle">Gmail se seedha mail bhejein</div>
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <div class="section-label">📤 Sender Details</div>
+
+    <div class="field">
+      <label>Aapki Gmail ID</label>
+      <input type="email" id="senderEmail" placeholder="yourname@gmail.com" />
+    </div>
+
+    <div class="field">
+      <label>App Password</label>
+      <input type="password" id="appPassword" placeholder="xxxx xxxx xxxx xxxx" />
+      <p class="pass-note">
+        App Password kaise banayein? → 
+        <a href="https://myaccount.google.com/apppasswords" target="_blank">myaccount.google.com/apppasswords</a><br>
+        (2-Step Verification ON karna hoga pehle)
+      </p>
+    </div>
+
+    <hr class="divider" style="margin-top:24px" />
+
+    <div class="section-label" style="margin-top:4px">📨 Mail Details</div>
+
+    <div class="field">
+      <label>Kisko bhejna hai (To)</label>
+      <input type="email" id="toEmail" placeholder="friend@example.com" />
+    </div>
+
+    <div class="field">
+      <label>Subject</label>
+      <input type="text" id="subject" placeholder="Mail ka vishay likhein" />
+    </div>
+
+    <div class="field">
+      <label>Message</label>
+      <textarea id="message" placeholder="Apna sandesh yahaan likhein..."></textarea>
+    </div>
+
+    <button class="btn" id="sendBtn" onclick="sendMail()">
+      ✉️ &nbsp; Mail Bhejo
+    </button>
+
+    <div class="status" id="status"></div>
+  </div>
+
+  <script>
+    async function sendMail() {
+      const btn = document.getElementById("sendBtn");
+      const status = document.getElementById("status");
+
+      const payload = {
+        senderEmail: document.getElementById("senderEmail").value.trim(),
+        appPassword: document.getElementById("appPassword").value.trim(),
+        toEmail: document.getElementById("toEmail").value.trim(),
+        subject: document.getElementById("subject").value.trim(),
+        message: document.getElementById("message").value.trim(),
+      };
+
+      if (!payload.senderEmail || !payload.appPassword || !payload.toEmail || !payload.subject || !payload.message) {
+        showStatus("⚠️ Kripya sabhi fields bharein.", "error");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Bhej raha hai...';
+      status.style.display = "none";
+
+      try {
+        const res = await fetch("/send-mail", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          showStatus(data.message, "success");
+          document.getElementById("message").value = "";
+          document.getElementById("subject").value = "";
+          document.getElementById("toEmail").value = "";
+        } else {
+          showStatus(data.error, "error");
+        }
+      } catch (e) {
+        showStatus("❌ Server se connect nahi ho paya. Dobara try karein.", "error");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = "✉️ &nbsp; Mail Bhejo";
+      }
+    }
+
+    function showStatus(msg, type) {
+      const s = document.getElementById("status");
+      s.textContent = msg;
+      s.className = "status " + type;
+      s.style.display = "block";
+    }
+  </script>
+</body>
+</html>
