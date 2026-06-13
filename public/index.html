@@ -9,318 +9,457 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
 :root{
+  --bg:#f5f5f3;
   --white:#ffffff;
-  --bg:#f7f7f5;
-  --surface:#ffffff;
-  --border:#e8e8e4;
-  --border-strong:#d0d0c8;
-  --text:#1a1a18;
-  --muted:#888880;
-  --accent:#1a1a18;
+  --border:#e4e4e0;
+  --border-strong:#ccccc6;
+  --text:#1c1c1a;
+  --muted:#888882;
+  --accent:#1c1c1a;
   --accent-light:#f0f0ec;
-  --accent-hover:#2d2d2a;
   --green:#16a34a;
   --red:#dc2626;
-  --orange:#ea580c;
   --blue:#2563eb;
-  --sidebar-w:220px;
+  --sidebar-w:200px;
   --radius:10px;
+  --content-max:680px;
 }
 
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;font-size:14px}
+body{
+  font-family:'Inter',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  font-size:14px;
+  display:flex;
+}
 
 /* ── Sidebar ── */
 .sidebar{
-  width:var(--sidebar-w);min-width:var(--sidebar-w);
+  width:var(--sidebar-w);
+  min-width:var(--sidebar-w);
   background:var(--white);
   border-right:1px solid var(--border);
-  display:flex;flex-direction:column;
-  padding:0;position:fixed;top:0;left:0;height:100vh;
+  display:flex;
+  flex-direction:column;
+  position:fixed;
+  top:0;left:0;
+  height:100vh;
   z-index:10;
 }
-.sidebar-brand{
-  padding:22px 20px 20px;
+.brand{
+  padding:20px 18px 18px;
   border-bottom:1px solid var(--border);
 }
 .brand-name{
   font-family:'DM Serif Display',serif;
-  font-size:20px;letter-spacing:-0.3px;color:var(--text);
+  font-size:19px;
+  letter-spacing:-0.3px;
 }
 .brand-sub{font-size:11px;color:var(--muted);margin-top:2px}
 
-.sidebar-nav{padding:12px 10px;flex:1}
-.nav-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1px;text-transform:uppercase;padding:8px 10px 4px}
-
+.nav{padding:10px 8px;flex:1;overflow-y:auto}
+.nav-label{
+  font-size:10px;font-weight:600;color:var(--muted);
+  letter-spacing:1px;text-transform:uppercase;
+  padding:10px 10px 4px;
+}
 .nav-item{
-  display:flex;align-items:center;gap:10px;
-  padding:9px 12px;border-radius:8px;
+  display:flex;align-items:center;gap:9px;
+  padding:8px 10px;border-radius:8px;
   cursor:pointer;color:var(--muted);
   font-size:13px;font-weight:500;
-  transition:all 0.15s;margin-bottom:2px;
+  transition:all 0.12s;margin-bottom:1px;
+  user-select:none;
 }
 .nav-item:hover{background:var(--bg);color:var(--text)}
 .nav-item.active{background:var(--accent);color:#fff}
-.nav-item .icon{font-size:15px;width:18px;text-align:center}
-
-.queue-badge{
+.nav-item .ni{font-size:14px;width:17px;text-align:center;flex-shrink:0}
+.nav-badge{
+  margin-left:auto;
   background:#fef3c7;color:#92400e;
   border-radius:99px;font-size:10px;font-weight:600;
-  padding:1px 7px;margin-left:auto;
+  padding:1px 6px;
 }
+.nav-item.active .nav-badge{background:rgba(255,255,255,0.2);color:#fff}
 
 .sidebar-footer{
-  padding:14px 16px;border-top:1px solid var(--border);
+  padding:12px 16px;
+  border-top:1px solid var(--border);
   font-size:11px;color:var(--muted);
 }
-.status-dot{
+.sdot{
   display:inline-block;width:6px;height:6px;
   border-radius:50%;background:var(--green);
-  margin-right:5px;
+  margin-right:5px;vertical-align:middle;
 }
 
 /* ── Main ── */
-.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh}
+.main{
+  margin-left:var(--sidebar-w);
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  min-height:100vh;
+}
 
 .topbar{
-  background:var(--white);border-bottom:1px solid var(--border);
-  padding:14px 28px;display:flex;align-items:center;justify-content:space-between;
+  background:var(--white);
+  border-bottom:1px solid var(--border);
+  padding:13px 0;
   position:sticky;top:0;z-index:5;
+  display:flex;align-items:center;justify-content:center;
 }
-.page-title{font-size:16px;font-weight:600;letter-spacing:-0.2px}
-.topbar-right{display:flex;gap:10px;align-items:center}
-
-.badge{
-  padding:3px 10px;border-radius:99px;font-size:11px;font-weight:500;
+.topbar-inner{
+  width:100%;max-width:calc(var(--content-max) + 80px);
+  padding:0 40px;
+  display:flex;align-items:center;justify-content:space-between;
 }
-.badge-queue{background:#fef3c7;color:#92400e}
+.page-title{font-size:15px;font-weight:600;letter-spacing:-0.2px}
+.top-badge{
+  display:flex;align-items:center;gap:6px;
+  font-size:12px;color:#92400e;
+  background:#fef3c7;border-radius:99px;
+  padding:3px 10px;
+}
 
-/* ── Pages ── */
-.page{display:none;padding:28px;animation:fadeIn 0.15s ease}
-.page.active{display:block}
-@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+/* ── Page wrapper — centered ── */
+.page{
+  display:none;
+  padding:32px 40px;
+  animation:fadeIn 0.15s ease;
+  flex:1;
+}
+.page.active{display:flex;justify-content:center}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 
-/* ── Compose form ── */
-.compose-wrap{max-width:780px}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.form-grid.full{grid-template-columns:1fr}
+.page-content{
+  width:100%;
+  max-width:var(--content-max);
+}
 
-.field{margin-bottom:14px}
-.field label{display:block;font-size:12px;font-weight:500;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+/* ── Cards ── */
+.card{
+  background:var(--white);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:22px 24px;
+  margin-bottom:16px;
+}
+.card-title{
+  font-size:12px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.7px;
+  color:var(--muted);
+  margin-bottom:16px;
+  padding-bottom:12px;
+  border-bottom:1px solid var(--border);
+}
 
-.field input,.field select,.field textarea{
-  width:100%;padding:10px 13px;
-  border:1px solid var(--border);border-radius:var(--radius);
-  font-family:'Inter',sans-serif;font-size:13.5px;color:var(--text);
-  background:var(--white);outline:none;
+/* ── Form ── */
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+
+.field{margin-bottom:13px}
+.field:last-child{margin-bottom:0}
+label{
+  display:block;
+  font-size:11.5px;font-weight:500;
+  color:var(--muted);
+  margin-bottom:5px;
+  letter-spacing:.2px;
+}
+
+input,select,textarea{
+  width:100%;
+  padding:9px 12px;
+  border:1px solid var(--border);
+  border-radius:8px;
+  font-family:'Inter',sans-serif;
+  font-size:13.5px;
+  color:var(--text);
+  background:var(--white);
+  outline:none;
   transition:border-color 0.15s,box-shadow 0.15s;
+  -webkit-appearance:none;
 }
-.field input:focus,.field select:focus,.field textarea:focus{
+input:focus,select:focus,textarea:focus{
   border-color:var(--accent);
-  box-shadow:0 0 0 3px rgba(26,26,24,0.08);
+  box-shadow:0 0 0 3px rgba(28,28,26,0.07);
 }
-.field select{cursor:pointer}
+input::placeholder,textarea::placeholder{color:#bbbbb6}
+select{cursor:pointer}
+textarea{resize:vertical;min-height:90px;line-height:1.6}
+
+/* ── Recipients textarea hint ── */
+.field-hint{
+  font-size:11px;color:var(--muted);
+  margin-top:5px;line-height:1.5;
+}
 
 /* ── Rich text editor ── */
-.editor-toolbar{
-  display:flex;gap:2px;flex-wrap:wrap;
-  border:1px solid var(--border);border-bottom:none;
-  border-radius:var(--radius) var(--radius) 0 0;
-  padding:8px 10px;background:var(--bg);
+.toolbar{
+  display:flex;gap:1px;flex-wrap:wrap;
+  border:1px solid var(--border);
+  border-bottom:none;
+  border-radius:8px 8px 0 0;
+  padding:7px 8px;
+  background:var(--bg);
+  align-items:center;
 }
-.tb-btn{
-  padding:5px 9px;border:none;background:transparent;
-  border-radius:6px;cursor:pointer;font-size:13px;color:var(--text);
-  font-family:inherit;transition:background 0.1s;
-  min-width:30px;text-align:center;
+.tb{
+  padding:4px 8px;
+  border:none;background:transparent;
+  border-radius:5px;cursor:pointer;
+  font-size:12.5px;color:var(--text);
+  font-family:inherit;
+  transition:background 0.1s;
+  min-width:28px;text-align:center;line-height:1.4;
 }
-.tb-btn:hover{background:var(--border)}
-.tb-btn.active{background:var(--accent);color:#fff}
-.tb-sep{width:1px;background:var(--border);margin:3px 4px;align-self:stretch}
-
+.tb:hover{background:var(--border)}
+.tb.on{background:var(--accent);color:#fff}
+.tsep{width:1px;background:var(--border);margin:2px 4px;align-self:stretch;flex-shrink:0}
+.tsel{
+  border:none;background:transparent;
+  font-size:11.5px;cursor:pointer;
+  color:var(--muted);padding:2px 4px;
+  font-family:inherit;outline:none;
+}
 #editor{
   border:1px solid var(--border);
-  border-radius:0 0 var(--radius) var(--radius);
-  padding:14px 16px;min-height:200px;
-  background:var(--white);outline:none;
-  font-size:14px;line-height:1.7;
+  border-radius:0 0 8px 8px;
+  padding:13px 14px;
+  min-height:200px;
+  background:var(--white);
+  outline:none;
+  font-size:14px;
+  line-height:1.75;
+  color:var(--text);
 }
-#editor:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,26,24,0.08)}
+#editor:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(28,28,26,0.07)}
+#editor:empty:before{content:attr(data-placeholder);color:#bbbbb6;pointer-events:none}
 
-/* ── File upload ── */
-.file-drop{
-  border:2px dashed var(--border);border-radius:var(--radius);
-  padding:20px;text-align:center;cursor:pointer;
-  transition:border-color 0.15s,background 0.15s;color:var(--muted);
-  font-size:13px;
+/* ── Attachments ── */
+.drop-zone{
+  border:2px dashed var(--border);
+  border-radius:8px;
+  padding:18px;
+  text-align:center;
+  cursor:pointer;
+  font-size:13px;color:var(--muted);
+  transition:all 0.15s;
 }
-.file-drop:hover,.file-drop.dragover{border-color:var(--accent);background:var(--accent-light)}
-.file-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-.file-chip{
-  display:flex;align-items:center;gap:6px;
-  background:var(--bg);border:1px solid var(--border);
-  border-radius:6px;padding:5px 10px;font-size:12px;
+.drop-zone:hover,.drop-zone.over{
+  border-color:var(--accent);
+  background:var(--accent-light);
+  color:var(--text);
 }
-.file-chip button{background:none;border:none;cursor:pointer;color:var(--muted);padding:0;font-size:14px;line-height:1}
-.file-chip button:hover{color:var(--red)}
-
-/* ── Templates ── */
-.templates-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-bottom:24px}
-.template-card{
-  background:var(--white);border:1px solid var(--border);
-  border-radius:var(--radius);padding:18px;cursor:pointer;
-  transition:border-color 0.15s,box-shadow 0.15s;
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{
+  display:flex;align-items:center;gap:5px;
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:4px 10px;font-size:12px;
 }
-.template-card:hover{border-color:var(--accent);box-shadow:0 2px 12px rgba(0,0,0,0.06)}
-.template-card h3{font-size:14px;font-weight:600;margin-bottom:6px}
-.template-card p{font-size:12px;color:var(--muted);line-height:1.5}
-.template-tag{
-  display:inline-block;margin-top:10px;
-  font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;
-  padding:2px 8px;border-radius:99px;
+.chip-rm{
+  background:none;border:none;cursor:pointer;
+  color:var(--muted);padding:0;font-size:15px;line-height:1;
 }
-.tag-business{background:#dbeafe;color:#1e40af}
-.tag-personal{background:#dcfce7;color:#166534}
-.tag-promo{background:#fce7f3;color:#9d174d}
-.tag-followup{background:#fef3c7;color:#92400e}
-
-/* ── History ── */
-.history-table{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
-.history-table table{width:100%;border-collapse:collapse}
-.history-table th{
-  font-size:11px;font-weight:600;text-transform:uppercase;
-  letter-spacing:.5px;color:var(--muted);
-  padding:11px 16px;border-bottom:1px solid var(--border);
-  text-align:left;background:var(--bg);
-}
-.history-table td{padding:12px 16px;font-size:13px;border-bottom:1px solid var(--border)}
-.history-table tr:last-child td{border-bottom:none}
-.history-table tr:hover td{background:#fafaf8}
-
-.status-pill{
-  display:inline-flex;align-items:center;gap:5px;
-  padding:3px 9px;border-radius:99px;font-size:11px;font-weight:500;
-}
-.status-sent{background:#dcfce7;color:#166534}
-.status-failed{background:#fee2e2;color:#991b1b}
-.status-queued{background:#fef3c7;color:#92400e}
-.status-sending{background:#dbeafe;color:#1e40af}
-
-.empty-state{text-align:center;padding:56px 24px;color:var(--muted)}
-.empty-state .icon{font-size:40px;margin-bottom:12px}
-.empty-state p{font-size:14px}
+.chip-rm:hover{color:var(--red)}
 
 /* ── Buttons ── */
+.btns{display:flex;gap:8px;align-items:center;margin-top:4px}
 .btn{
-  display:inline-flex;align-items:center;gap:7px;
-  padding:10px 18px;border-radius:var(--radius);
-  font-family:'Inter',sans-serif;font-size:13.5px;font-weight:500;
-  cursor:pointer;border:none;transition:all 0.15s;
+  display:inline-flex;align-items:center;gap:6px;
+  padding:9px 16px;
+  border-radius:8px;
+  font-family:'Inter',sans-serif;
+  font-size:13px;font-weight:500;
+  cursor:pointer;border:none;
+  transition:all 0.12s;
+  white-space:nowrap;
 }
 .btn-primary{background:var(--accent);color:#fff}
-.btn-primary:hover{background:var(--accent-hover)}
-.btn-primary:disabled{opacity:0.45;cursor:not-allowed}
+.btn-primary:hover{background:#333331}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
 .btn-outline{background:var(--white);color:var(--text);border:1px solid var(--border)}
 .btn-outline:hover{background:var(--bg)}
-.btn-sm{padding:6px 12px;font-size:12px}
-.btn-danger{background:#fee2e2;color:var(--red);border:none}
-.btn-danger:hover{background:#fecaca}
+.btn-sm{padding:5px 11px;font-size:12px}
+.btn-danger{background:#fef2f2;color:var(--red);border:none}
+.btn-danger:hover{background:#fee2e2}
 
-.btns-row{display:flex;gap:10px;align-items:center;margin-top:20px}
+/* ── Templates ── */
+.templates-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+  gap:12px;
+  margin-bottom:0;
+}
+.tpl-card{
+  background:var(--white);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:16px;cursor:pointer;
+  transition:border-color 0.15s,box-shadow 0.15s;
+}
+.tpl-card:hover{
+  border-color:var(--accent);
+  box-shadow:0 2px 12px rgba(0,0,0,0.06);
+}
+.tpl-card h3{font-size:13px;font-weight:600;margin-bottom:5px}
+.tpl-card p{font-size:11.5px;color:var(--muted);line-height:1.5}
+.tpl-tag{
+  display:inline-block;margin-top:10px;
+  font-size:10px;font-weight:600;text-transform:uppercase;
+  letter-spacing:.5px;padding:2px 7px;border-radius:99px;
+}
+.t-biz{background:#dbeafe;color:#1e40af}
+.t-per{background:#dcfce7;color:#166534}
+.t-prm{background:#fce7f3;color:#9d174d}
+.t-flw{background:#fef3c7;color:#92400e}
+
+/* ── History table ── */
+.hist-wrap{
+  background:var(--white);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  overflow:hidden;
+}
+.hist-wrap table{width:100%;border-collapse:collapse}
+.hist-wrap th{
+  font-size:11px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.5px;
+  color:var(--muted);
+  padding:10px 14px;
+  border-bottom:1px solid var(--border);
+  text-align:left;background:var(--bg);
+}
+.hist-wrap td{
+  padding:11px 14px;font-size:13px;
+  border-bottom:1px solid var(--border);
+}
+.hist-wrap tr:last-child td{border-bottom:none}
+.hist-wrap tr:hover td{background:#fafaf8}
+
+.pill{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:2px 8px;border-radius:99px;font-size:11px;font-weight:500;
+}
+.p-sent{background:#dcfce7;color:#166534}
+.p-failed{background:#fee2e2;color:#991b1b}
+.p-queued{background:#fef3c7;color:#92400e}
+.p-sending{background:#dbeafe;color:#1e40af}
+
+.empty{text-align:center;padding:48px 16px;color:var(--muted)}
+.empty .ei{font-size:36px;margin-bottom:10px}
+.empty p{font-size:13px}
+
+/* ── Section header ── */
+.sec-head{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:16px;
+}
+.sec-head h2{font-size:15px;font-weight:600}
 
 /* ── Toast ── */
 #toast{
-  position:fixed;bottom:24px;right:24px;
-  padding:13px 18px;border-radius:var(--radius);
-  font-size:13.5px;font-weight:500;
-  box-shadow:0 4px 24px rgba(0,0,0,0.12);
-  transform:translateY(80px);opacity:0;
-  transition:all 0.3s cubic-bezier(.34,1.56,.64,1);
-  z-index:999;max-width:340px;
+  position:fixed;bottom:22px;right:22px;
+  padding:12px 16px;border-radius:var(--radius);
+  font-size:13px;font-weight:500;
+  box-shadow:0 4px 20px rgba(0,0,0,0.1);
+  transform:translateY(70px);opacity:0;
+  transition:all 0.28s cubic-bezier(.34,1.56,.64,1);
+  z-index:999;max-width:320px;pointer-events:none;
 }
 #toast.show{transform:translateY(0);opacity:1}
-#toast.success{background:#f0fdf4;color:#166534;border:1px solid #bbf7d0}
-#toast.error{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
-#toast.info{background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe}
+#toast.ok{background:#f0fdf4;color:#166534;border:1px solid #bbf7d0}
+#toast.err{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
+#toast.inf{background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe}
 
-/* ── Section header ── */
-.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
-.section-header h2{font-size:16px;font-weight:600}
+.spin{
+  display:inline-block;width:13px;height:13px;
+  border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;
+  border-radius:50%;animation:sp .6s linear infinite;vertical-align:middle;
+}
+@keyframes sp{to{transform:rotate(360deg)}}
 
 /* ── Settings ── */
-.settings-card{
-  background:var(--white);border:1px solid var(--border);
-  border-radius:var(--radius);padding:24px;max-width:520px;margin-bottom:16px;
+.setting-row{
+  display:flex;justify-content:space-between;align-items:flex-start;
+  padding:14px 0;border-bottom:1px solid var(--border);
 }
-.settings-card h3{font-size:14px;font-weight:600;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)}
-
-.spinner{
-  display:inline-block;width:14px;height:14px;
-  border:2px solid rgba(255,255,255,0.35);border-top-color:#fff;
-  border-radius:50%;animation:spin .6s linear infinite;
-}
-@keyframes spin{to{transform:rotate(360deg)}}
+.setting-row:last-child{border-bottom:none;padding-bottom:0}
+.setting-label{font-size:13px;font-weight:500;margin-bottom:3px}
+.setting-desc{font-size:12px;color:var(--muted);line-height:1.5}
 </style>
 </head>
 <body>
 
-<!-- ── SIDEBAR ── -->
+<!-- SIDEBAR -->
 <aside class="sidebar">
-  <div class="sidebar-brand">
+  <div class="brand">
     <div class="brand-name">Mail Pro</div>
     <div class="brand-sub">Professional mail sender</div>
   </div>
-  <nav class="sidebar-nav">
+  <nav class="nav">
     <div class="nav-label">Compose</div>
-    <div class="nav-item active" onclick="showPage('compose')">
-      <span class="icon">✏️</span> Compose
+    <div class="nav-item active" onclick="go('compose')">
+      <span class="ni">✏️</span> Compose
     </div>
-    <div class="nav-item" onclick="showPage('templates')">
-      <span class="icon">📄</span> Templates
+    <div class="nav-item" onclick="go('templates')">
+      <span class="ni">📄</span> Templates
     </div>
-    <div class="nav-label" style="margin-top:8px">Manage</div>
-    <div class="nav-item" onclick="showPage('history')">
-      <span class="icon">📋</span> Sent History
+    <div class="nav-label" style="margin-top:6px">Manage</div>
+    <div class="nav-item" onclick="go('history')">
+      <span class="ni">📋</span> Sent History
     </div>
-    <div class="nav-item" id="nav-queue" onclick="showPage('queue')">
-      <span class="icon">⏳</span> Queue
-      <span class="queue-badge" id="queueBadge" style="display:none">0</span>
+    <div class="nav-item" onclick="go('queue')">
+      <span class="ni">⏳</span> Queue
+      <span class="nav-badge" id="qBadge" style="display:none">0</span>
     </div>
-    <div class="nav-label" style="margin-top:8px">Account</div>
-    <div class="nav-item" onclick="showPage('settings')">
-      <span class="icon">⚙️</span> Settings
+    <div class="nav-label" style="margin-top:6px">Account</div>
+    <div class="nav-item" onclick="go('settings')">
+      <span class="ni">⚙️</span> Settings
     </div>
   </nav>
   <div class="sidebar-footer">
-    <span class="status-dot"></span> Server connected
+    <span class="sdot"></span> Server connected
   </div>
 </aside>
 
-<!-- ── MAIN ── -->
+<!-- MAIN -->
 <main class="main">
+
   <div class="topbar">
-    <div class="page-title" id="pageTitle">Compose Mail</div>
-    <div class="topbar-right">
-      <span class="badge badge-queue" id="topQueueBadge" style="display:none">⏳ <span id="topQueueNum">0</span> in queue</span>
+    <div class="topbar-inner">
+      <div class="page-title" id="pgTitle">Compose Mail</div>
+      <div class="top-badge" id="topBadge" style="display:none">
+        ⏳ <span id="topBadgeNum">0</span> in queue
+      </div>
     </div>
   </div>
 
-  <!-- COMPOSE PAGE -->
-  <div class="page active" id="page-compose">
-    <div class="compose-wrap">
+  <!-- ── COMPOSE ── -->
+  <div class="page active" id="pg-compose">
+    <div class="page-content">
 
-      <div class="settings-card" style="margin-bottom:20px">
-        <h3>🔐 Sender Account</h3>
-        <div class="form-grid">
+      <div class="card">
+        <div class="card-title">Sender Account</div>
+        <div class="row-3">
+          <div class="field">
+            <label>Your Name</label>
+            <input id="senderName" type="text" placeholder="e.g. Rahul Sharma"/>
+          </div>
           <div class="field">
             <label>Email ID</label>
-            <input type="email" id="senderEmail" placeholder="yourname@gmail.com"/>
+            <input id="senderEmail" type="email" placeholder="you@gmail.com"/>
           </div>
           <div class="field">
             <label>App Password</label>
-            <input type="password" id="appPassword" placeholder="xxxx xxxx xxxx xxxx"/>
+            <input id="appPassword" type="password" placeholder="xxxx xxxx xxxx xxxx"/>
           </div>
         </div>
-        <div class="field" style="margin-bottom:0">
+        <div class="field">
           <label>Provider</label>
           <select id="provider">
             <option value="gmail">Gmail</option>
@@ -330,282 +469,295 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         </div>
       </div>
 
-      <div class="settings-card" style="margin-bottom:20px">
-        <h3>📨 Recipients</h3>
+      <div class="card">
+        <div class="card-title">Recipients</div>
         <div class="field">
           <label>To <span style="color:var(--red)">*</span></label>
-          <input type="text" id="toEmail" placeholder="friend@example.com, another@example.com"/>
+          <textarea id="toEmail" rows="3" placeholder="Ek line mein ek email daalo:&#10;friend@gmail.com&#10;boss@company.com&#10;client@example.com"></textarea>
+          <div class="field-hint">💡 Ek line = ek email. Comma se bhi alag kar sakte ho.</div>
         </div>
-        <div class="form-grid">
-          <div class="field" style="margin-bottom:0">
+        <div class="row-2">
+          <div class="field">
             <label>CC</label>
-            <input type="text" id="ccEmail" placeholder="cc@example.com"/>
+            <textarea id="ccEmail" rows="2" placeholder="cc1@gmail.com&#10;cc2@gmail.com"></textarea>
           </div>
-          <div class="field" style="margin-bottom:0">
+          <div class="field">
             <label>BCC</label>
-            <input type="text" id="bccEmail" placeholder="bcc@example.com"/>
+            <textarea id="bccEmail" rows="2" placeholder="bcc1@gmail.com&#10;bcc2@gmail.com"></textarea>
           </div>
         </div>
       </div>
 
-      <div class="settings-card" style="margin-bottom:20px">
-        <h3>📝 Message</h3>
+      <div class="card">
+        <div class="card-title">Message</div>
         <div class="field">
           <label>Subject <span style="color:var(--red)">*</span></label>
-          <input type="text" id="subject" placeholder="Mail ka subject likhein"/>
+          <input id="subject" type="text" placeholder="Mail ka subject likhein"/>
         </div>
 
         <div class="field">
-          <label>Body (Rich Text)</label>
-          <div class="editor-toolbar">
-            <button class="tb-btn" onclick="fmt('bold')" title="Bold"><b>B</b></button>
-            <button class="tb-btn" onclick="fmt('italic')" title="Italic"><i>I</i></button>
-            <button class="tb-btn" onclick="fmt('underline')" title="Underline"><u>U</u></button>
-            <div class="tb-sep"></div>
-            <button class="tb-btn" onclick="fmt('insertUnorderedList')" title="Bullet List">≡</button>
-            <button class="tb-btn" onclick="fmt('insertOrderedList')" title="Numbered List">1.</button>
-            <div class="tb-sep"></div>
-            <button class="tb-btn" onclick="fmt('justifyLeft')" title="Left">⬅</button>
-            <button class="tb-btn" onclick="fmt('justifyCenter')" title="Center">↔</button>
-            <button class="tb-btn" onclick="fmt('justifyRight')" title="Right">➡</button>
-            <div class="tb-sep"></div>
-            <select onchange="fmt('fontSize', this.value);this.value=''" style="border:none;background:transparent;font-size:12px;cursor:pointer;color:var(--muted)">
+          <label>Body</label>
+          <div class="toolbar">
+            <button class="tb" onclick="fmt('bold')"><b>B</b></button>
+            <button class="tb" onclick="fmt('italic')"><i>I</i></button>
+            <button class="tb" onclick="fmt('underline')"><u>U</u></button>
+            <button class="tb" onclick="fmt('strikeThrough')"><s>S</s></button>
+            <div class="tsep"></div>
+            <button class="tb" onclick="fmt('insertUnorderedList')">• List</button>
+            <button class="tb" onclick="fmt('insertOrderedList')">1. List</button>
+            <div class="tsep"></div>
+            <button class="tb" onclick="fmt('justifyLeft')" title="Left">⬅</button>
+            <button class="tb" onclick="fmt('justifyCenter')" title="Center">↔</button>
+            <button class="tb" onclick="fmt('justifyRight')" title="Right">➡</button>
+            <div class="tsep"></div>
+            <select class="tsel" onchange="fmt('fontSize',this.value);this.value=''">
               <option value="">Size</option>
-              <option value="1">S</option>
-              <option value="3">M</option>
-              <option value="5">L</option>
-              <option value="7">XL</option>
+              <option value="1">Small</option>
+              <option value="3">Normal</option>
+              <option value="5">Large</option>
+              <option value="7">XLarge</option>
             </select>
-            <select onchange="fmt('foreColor', this.value);this.value=''" style="border:none;background:transparent;font-size:12px;cursor:pointer;color:var(--muted)">
+            <select class="tsel" onchange="fmt('foreColor',this.value);this.value=''">
               <option value="">Color</option>
-              <option value="#1a1a18">Black</option>
+              <option value="#1c1c1a">Black</option>
               <option value="#2563eb">Blue</option>
               <option value="#dc2626">Red</option>
               <option value="#16a34a">Green</option>
               <option value="#ea580c">Orange</option>
+              <option value="#7c3aed">Purple</option>
             </select>
-            <div class="tb-sep"></div>
-            <button class="tb-btn" onclick="insertLink()" title="Link">🔗</button>
-            <button class="tb-btn" onclick="fmt('removeFormat')" title="Clear">✕</button>
+            <div class="tsep"></div>
+            <button class="tb" onclick="insLink()">🔗</button>
+            <button class="tb" onclick="fmt('removeFormat')" title="Clear formatting">✕</button>
           </div>
-          <div id="editor" contenteditable="true" spellcheck="true"></div>
+          <div id="editor" contenteditable="true" spellcheck="true"
+               data-placeholder="Apna sandesh yahaan likhein..."></div>
         </div>
 
-        <div class="field" style="margin-bottom:0">
-          <label>Attachments (max 5 files, 10MB each)</label>
-          <div class="file-drop" id="fileDrop" onclick="document.getElementById('fileInput').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
-            📎 Click to attach files or drag & drop here
+        <div class="field">
+          <label>Attachments (max 5, 10MB each)</label>
+          <div class="drop-zone" id="dropZone"
+               onclick="document.getElementById('fileIn').click()"
+               ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+            📎 Click karein ya drag &amp; drop karein
           </div>
-          <input type="file" id="fileInput" multiple style="display:none" onchange="handleFileSelect(event)"/>
-          <div class="file-list" id="fileList"></div>
+          <input type="file" id="fileIn" multiple style="display:none" onchange="onFileSelect(event)"/>
+          <div class="chips" id="chips"></div>
         </div>
       </div>
 
-      <div class="btns-row">
+      <div class="btns">
         <button class="btn btn-primary" id="sendBtn" onclick="sendMail(false)">
           ✉️ Send Now
         </button>
-        <button class="btn btn-outline" onclick="sendMail(true)">
+        <button class="btn btn-outline" id="queueBtn" onclick="sendMail(true)">
           ⏳ Add to Queue
         </button>
-        <button class="btn btn-outline" onclick="clearForm()">
-          🗑 Clear
-        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── TEMPLATES ── -->
+  <div class="page" id="pg-templates">
+    <div class="page-content">
+      <div class="sec-head"><h2>Email Templates</h2></div>
+      <div class="templates-grid" id="tplGrid"></div>
+    </div>
+  </div>
+
+  <!-- ── HISTORY ── -->
+  <div class="page" id="pg-history">
+    <div class="page-content">
+      <div class="sec-head">
+        <h2>Sent History</h2>
+        <button class="btn btn-outline btn-sm" onclick="loadHistory()">🔄 Refresh</button>
+      </div>
+      <div class="hist-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>From</th><th>To</th><th>Subject</th>
+              <th>Time</th><th>Status</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="histBody">
+            <tr><td colspan="6"><div class="empty"><div class="ei">📭</div><p>Koi mail nahi bheja abhi tak</p></div></td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
 
-  <!-- TEMPLATES PAGE -->
-  <div class="page" id="page-templates">
-    <div class="section-header">
-      <h2>Email Templates</h2>
-    </div>
-    <div class="templates-grid" id="templatesGrid"></div>
-  </div>
-
-  <!-- HISTORY PAGE -->
-  <div class="page" id="page-history">
-    <div class="section-header">
-      <h2>Sent History</h2>
-      <button class="btn btn-outline btn-sm" onclick="loadHistory()">🔄 Refresh</button>
-    </div>
-    <div class="history-table">
-      <table>
-        <thead>
-          <tr>
-            <th>To</th>
-            <th>Subject</th>
-            <th>Provider</th>
-            <th>Attachments</th>
-            <th>Time</th>
-            <th>Status</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="historyBody">
-          <tr><td colspan="7"><div class="empty-state"><div class="icon">📭</div><p>Abhi tak koi mail nahi bheja</p></div></td></tr>
-        </tbody>
-      </table>
+  <!-- ── QUEUE ── -->
+  <div class="page" id="pg-queue">
+    <div class="page-content">
+      <div class="sec-head">
+        <h2>Mail Queue</h2>
+        <button class="btn btn-outline btn-sm" onclick="loadQueue()">🔄 Refresh</button>
+      </div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-title">Status</div>
+        <p id="qStatusText" style="font-size:13px;color:var(--muted)">Loading...</p>
+      </div>
+      <div class="hist-wrap">
+        <table>
+          <thead><tr><th>To</th><th>Subject</th><th>Queued At</th><th>Status</th></tr></thead>
+          <tbody id="qBody">
+            <tr><td colspan="4"><div class="empty"><div class="ei">⏳</div><p>Queue khali hai</p></div></td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
-  <!-- QUEUE PAGE -->
-  <div class="page" id="page-queue">
-    <div class="section-header">
-      <h2>Mail Queue</h2>
-      <button class="btn btn-outline btn-sm" onclick="loadQueueStatus()">🔄 Refresh</button>
-    </div>
-    <div class="settings-card">
-      <h3>Queue Status</h3>
-      <p id="queueStatusText" style="font-size:13px;color:var(--muted)">Loading...</p>
-    </div>
-    <div class="history-table">
-      <table>
-        <thead>
-          <tr><th>To</th><th>Subject</th><th>Time</th><th>Status</th></tr>
-        </thead>
-        <tbody id="queueBody">
-          <tr><td colspan="4"><div class="empty-state"><div class="icon">⏳</div><p>Queue khali hai</p></div></td></tr>
-        </tbody>
-      </table>
+  <!-- ── SETTINGS ── -->
+  <div class="page" id="pg-settings">
+    <div class="page-content">
+      <div class="sec-head"><h2>Settings & Help</h2></div>
+
+      <div class="card">
+        <div class="card-title">Gmail App Password</div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Kaise banayein?</div>
+            <div class="setting-desc">
+              1. Google Account → Security → 2-Step Verification ON karein<br>
+              2. <a href="https://myaccount.google.com/apppasswords" target="_blank" style="color:var(--blue)">myaccount.google.com/apppasswords</a> par jaayein<br>
+              3. App name "Mail Pro" daalein → Create<br>
+              4. Jo 16-character password mile, wahi use karein
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Outlook App Password</div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-desc">
+              Microsoft Account → Security → Advanced Security Options → App Passwords section mein banayein
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Spam se Bachne ke Tips</div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-desc" style="line-height:2">
+              ✅ Sender Name zaroor bhar — khali naam spam signal hai<br>
+              ✅ Subject descriptive rakho — "Hello" jaise vague subjects spam mein jaate hain<br>
+              ✅ Plain text body bhi automatically generate hoti hai<br>
+              ✅ Ek baar mein bahut zyada recipients mat daalo<br>
+              ✅ Queue use karo bulk ke liye — 1 sec gap auto hota hai
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Server Health</div>
+        <button class="btn btn-outline btn-sm" onclick="checkHealth()">Check Now</button>
+        <p id="healthOut" style="margin-top:12px;font-size:13px;color:var(--muted)"></p>
+      </div>
     </div>
   </div>
 
-  <!-- SETTINGS PAGE -->
-  <div class="page" id="page-settings">
-    <div class="section-header"><h2>Settings</h2></div>
-    <div class="settings-card">
-      <h3>💡 App Password Guide</h3>
-      <p style="font-size:13px;color:var(--muted);line-height:1.7">
-        Gmail ya Outlook ke liye normal password kaam nahi karta.<br>
-        <strong style="color:var(--text)">Gmail App Password:</strong><br>
-        1. Google Account → Security → 2-Step Verification ON karein<br>
-        2. <a href="https://myaccount.google.com/apppasswords" target="_blank" style="color:var(--blue)">myaccount.google.com/apppasswords</a> par jaayein<br>
-        3. "Mail Pro" naam se password banayein (16 characters milenge)<br><br>
-        <strong style="color:var(--text)">Outlook App Password:</strong><br>
-        1. Microsoft Account → Security → Advanced Security Options<br>
-        2. App Passwords section mein banayein
-      </p>
-    </div>
-    <div class="settings-card">
-      <h3>⚡ Rate Limiting</h3>
-      <p style="font-size:13px;color:var(--muted);line-height:1.7">
-        Spam se bachne ke liye <strong style="color:var(--text)">max 10 mails per minute</strong> ki limit hai.<br>
-        Queue feature use karein bulk mails ke liye — automatic throttling hota hai.
-      </p>
-    </div>
-    <div class="settings-card">
-      <h3>📊 Server Info</h3>
-      <button class="btn btn-outline btn-sm" onclick="checkHealth()">Check Server Health</button>
-      <p id="healthResult" style="margin-top:12px;font-size:13px;color:var(--muted)"></p>
-    </div>
-  </div>
 </main>
 
 <div id="toast"></div>
 
 <script>
-// ── State ──────────────────────────────────────────────────────
-let attachedFiles = [];
-let historyData = [];
+// ── Data ──────────────────────────────────────────────────────
+let files = [];
+let histData = [];
 
-const templates = [
+const titles = {
+  compose:'Compose Mail', templates:'Templates',
+  history:'Sent History', queue:'Mail Queue', settings:'Settings'
+};
+
+const TEMPLATES = [
   {
-    name:"Professional Introduction",
-    subject:"Introduction — [Aapka Naam]",
-    body:`<p>Dear [Name],</p><p>I hope this message finds you well. My name is [Aapka Naam], and I am reaching out to introduce myself and explore potential opportunities for collaboration.</p><p>I would love to connect at your earliest convenience.</p><p>Best regards,<br>[Aapka Naam]</p>`,
-    tag:"business",tagLabel:"Business"
+    name:'Professional Introduction', tag:'t-biz', tl:'Business',
+    subject:'Introduction — [Your Name]',
+    body:`<p>Dear [Name],</p><p>I hope this message finds you well. My name is [Your Name], and I am reaching out to introduce myself and explore potential collaboration.</p><p>I would love to connect at your earliest convenience.</p><p>Best regards,<br>[Your Name]</p>`
   },
   {
-    name:"Follow-Up Mail",
-    subject:"Following Up — [Topic]",
-    body:`<p>Hi [Name],</p><p>I wanted to follow up on my previous message regarding [topic]. I understand you are busy, but I would appreciate any update when you have a moment.</p><p>Thank you for your time!</p><p>Regards,<br>[Aapka Naam]</p>`,
-    tag:"followup",tagLabel:"Follow-up"
+    name:'Follow-Up', tag:'t-flw', tl:'Follow-up',
+    subject:'Following up — [Topic]',
+    body:`<p>Hi [Name],</p><p>I wanted to follow up on my previous message regarding [topic]. I understand you are busy, but I would appreciate any update when you get a chance.</p><p>Thank you for your time!</p><p>Regards,<br>[Your Name]</p>`
   },
   {
-    name:"Meeting Request",
-    subject:"Meeting Request — [Date]",
-    body:`<p>Hello [Name],</p><p>I would like to schedule a meeting to discuss [topic]. Please let me know your availability for the following slots:</p><ul><li>[Date/Time Option 1]</li><li>[Date/Time Option 2]</li></ul><p>Looking forward to hearing from you.</p><p>Warm regards,<br>[Aapka Naam]</p>`,
-    tag:"business",tagLabel:"Business"
+    name:'Meeting Request', tag:'t-biz', tl:'Business',
+    subject:'Meeting Request — [Date]',
+    body:`<p>Hello [Name],</p><p>I would like to schedule a meeting to discuss [topic]. Please let me know your availability for:</p><ul><li>[Date/Time Option 1]</li><li>[Date/Time Option 2]</li></ul><p>Looking forward to hearing from you.</p><p>Warm regards,<br>[Your Name]</p>`
   },
   {
-    name:"Thank You Mail",
-    subject:"Thank You — [Reason]",
-    body:`<p>Dear [Name],</p><p>I wanted to take a moment to sincerely thank you for [reason]. Your [help/support/time] means a great deal to me.</p><p>I truly appreciate everything you have done.</p><p>With gratitude,<br>[Aapka Naam]</p>`,
-    tag:"personal",tagLabel:"Personal"
+    name:'Thank You', tag:'t-per', tl:'Personal',
+    subject:'Thank You — [Reason]',
+    body:`<p>Dear [Name],</p><p>I wanted to sincerely thank you for [reason]. Your support means a great deal to me.</p><p>With gratitude,<br>[Your Name]</p>`
   },
   {
-    name:"Promotional Offer",
-    subject:"🎉 Special Offer Just for You!",
-    body:`<p>Hi [Name],</p><p>We are excited to bring you an <strong>exclusive offer</strong> — <span style="color:#dc2626"><strong>[Offer Details]</strong></span>.</p><p>This offer is valid until <strong>[Date]</strong>. Don't miss out!</p><p>👉 <a href="#">Claim Your Offer</a></p><p>Cheers,<br>[Company Name]</p>`,
-    tag:"promo",tagLabel:"Promo"
+    name:'Promotional Offer', tag:'t-prm', tl:'Promo',
+    subject:'🎉 Special Offer for You!',
+    body:`<p>Hi [Name],</p><p>We are excited to share an <strong>exclusive offer</strong> — <span style="color:#dc2626"><strong>[Offer Details]</strong></span>.</p><p>Valid until <strong>[Date]</strong>. Don't miss out!</p><p>Cheers,<br>[Company Name]</p>`
   },
   {
-    name:"Job Application",
-    subject:"Application for [Position] — [Aapka Naam]",
-    body:`<p>Dear Hiring Manager,</p><p>I am writing to apply for the <strong>[Position]</strong> role at <strong>[Company]</strong>. With [X] years of experience in [field], I am confident I can make a meaningful contribution to your team.</p><p>Please find my resume attached for your review. I would welcome the opportunity to discuss my qualifications further.</p><p>Sincerely,<br>[Aapka Naam]</p>`,
-    tag:"business",tagLabel:"Business"
+    name:'Job Application', tag:'t-biz', tl:'Business',
+    subject:'Application for [Position] — [Your Name]',
+    body:`<p>Dear Hiring Manager,</p><p>I am writing to apply for the <strong>[Position]</strong> role at <strong>[Company]</strong>. With [X] years of experience in [field], I am confident I can contribute meaningfully to your team.</p><p>Please find my resume attached for your review.</p><p>Sincerely,<br>[Your Name]</p>`
   },
 ];
 
-// ── Navigation ─────────────────────────────────────────────────
-const pageTitles = {
-  compose:"Compose Mail",templates:"Templates",
-  history:"Sent History",queue:"Mail Queue",settings:"Settings"
-};
-
-function showPage(name){
+// ── Navigation ────────────────────────────────────────────────
+function go(name){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById('page-'+name).classList.add('active');
-  document.querySelector(`.nav-item[onclick="showPage('${name}')"]`).classList.add('active');
-  document.getElementById('pageTitle').textContent = pageTitles[name];
+  document.getElementById('pg-'+name).classList.add('active');
+  document.querySelector(`.nav-item[onclick="go('${name}')"]`).classList.add('active');
+  document.getElementById('pgTitle').textContent = titles[name];
   if(name==='history') loadHistory();
-  if(name==='queue') loadQueueStatus();
+  if(name==='queue') loadQueue();
   if(name==='templates') renderTemplates();
 }
 
-// ── Rich Text Editor ───────────────────────────────────────────
-function fmt(cmd, val){
+// ── Rich text ─────────────────────────────────────────────────
+function fmt(cmd,val){
   document.getElementById('editor').focus();
-  document.execCommand(cmd, false, val||null);
+  document.execCommand(cmd,false,val||null);
 }
-function insertLink(){
-  const url = prompt("URL daalo (https://...)");
-  if(url) document.execCommand('createLink',false,url);
+function insLink(){
+  const u=prompt('URL daalo:');
+  if(u) document.execCommand('createLink',false,u);
 }
 
-// ── File Handling ──────────────────────────────────────────────
-function handleDragOver(e){e.preventDefault();document.getElementById('fileDrop').classList.add('dragover')}
-function handleDragLeave(e){document.getElementById('fileDrop').classList.remove('dragover')}
-function handleDrop(e){
-  e.preventDefault();
-  document.getElementById('fileDrop').classList.remove('dragover');
-  addFiles(Array.from(e.dataTransfer.files));
-}
-function handleFileSelect(e){addFiles(Array.from(e.target.files))}
-
-function addFiles(files){
-  files.forEach(f=>{
-    if(attachedFiles.length>=5){toast("Max 5 files attach kar sakte hain","error");return;}
-    if(f.size>10*1024*1024){toast(`${f.name} 10MB se bada hai`,"error");return;}
-    attachedFiles.push(f);
+// ── Files ─────────────────────────────────────────────────────
+function onDragOver(e){e.preventDefault();document.getElementById('dropZone').classList.add('over')}
+function onDragLeave(){document.getElementById('dropZone').classList.remove('over')}
+function onDrop(e){e.preventDefault();document.getElementById('dropZone').classList.remove('over');addFiles([...e.dataTransfer.files])}
+function onFileSelect(e){addFiles([...e.target.files])}
+function addFiles(fs){
+  fs.forEach(f=>{
+    if(files.length>=5){toast('Max 5 files allowed','err');return}
+    if(f.size>10*1024*1024){toast(f.name+' 10MB se bada hai','err');return}
+    files.push(f);
   });
-  renderFileList();
+  renderChips();
 }
-
-function renderFileList(){
-  const list = document.getElementById('fileList');
-  list.innerHTML = attachedFiles.map((f,i)=>`
-    <div class="file-chip">
-      📎 ${f.name} <span style="color:var(--muted)">(${(f.size/1024).toFixed(0)}KB)</span>
-      <button onclick="removeFile(${i})">×</button>
+function renderChips(){
+  document.getElementById('chips').innerHTML = files.map((f,i)=>`
+    <div class="chip">📎 ${f.name} <span style="color:var(--muted)">(${(f.size/1024).toFixed(0)}KB)</span>
+      <button class="chip-rm" onclick="removeFile(${i})">×</button>
     </div>`).join('');
 }
-function removeFile(i){attachedFiles.splice(i,1);renderFileList();}
+function removeFile(i){files.splice(i,1);renderChips()}
 
-// ── Send Mail ──────────────────────────────────────────────────
-async function sendMail(queue=false){
+// ── Send Mail ─────────────────────────────────────────────────
+async function sendMail(queue){
+  const senderName  = document.getElementById('senderName').value.trim();
   const senderEmail = document.getElementById('senderEmail').value.trim();
   const appPassword = document.getElementById('appPassword').value.trim();
   const provider    = document.getElementById('provider').value;
@@ -615,173 +767,166 @@ async function sendMail(queue=false){
   const subject     = document.getElementById('subject').value.trim();
   const htmlBody    = document.getElementById('editor').innerHTML.trim();
 
-  if(!senderEmail||!appPassword){return toast("Sender email aur App Password daalna zaroori hai","error")}
-  if(!toEmail){return toast("To field khali hai","error")}
-  if(!subject){return toast("Subject daalna zaroori hai","error")}
-  if(!htmlBody||htmlBody==='<br>'||htmlBody===''){return toast("Message body khali hai","error")}
+  if(!senderEmail||!appPassword) return toast('Sender email aur App Password daalna zaroori hai','err');
+  if(!toEmail)    return toast('To field khali hai','err');
+  if(!subject)    return toast('Subject daalna zaroori hai','err');
+  if(!htmlBody||htmlBody==='<br>') return toast('Message body khali hai','err');
 
-  const btn = document.getElementById('sendBtn');
-  btn.disabled=true;
-  btn.innerHTML=`<span class="spinner"></span> ${queue?'Queueing...':'Sending...'}`;
+  const sendBtn  = document.getElementById('sendBtn');
+  const queueBtn = document.getElementById('queueBtn');
+  sendBtn.disabled=true; queueBtn.disabled=true;
+  sendBtn.innerHTML = queue
+    ? '✉️ Send Now'
+    : '<span class="spin"></span> Sending...';
+  if(queue) queueBtn.innerHTML='<span class="spin"></span> Queueing...';
 
   const fd = new FormData();
-  fd.append('senderEmail',senderEmail);
-  fd.append('appPassword',appPassword);
-  fd.append('provider',provider);
-  fd.append('toEmail',toEmail);
-  fd.append('ccEmail',ccEmail);
-  fd.append('bccEmail',bccEmail);
-  fd.append('subject',subject);
-  fd.append('htmlBody',htmlBody);
-  attachedFiles.forEach(f=>fd.append('attachments',f));
+  fd.append('senderName',  senderName);
+  fd.append('senderEmail', senderEmail);
+  fd.append('appPassword', appPassword);
+  fd.append('provider',    provider);
+  fd.append('toEmail',     toEmail);
+  fd.append('ccEmail',     ccEmail);
+  fd.append('bccEmail',    bccEmail);
+  fd.append('subject',     subject);
+  fd.append('htmlBody',    htmlBody);
+  files.forEach(f=>fd.append('attachments',f));
 
   try{
-    const res = await fetch(queue?'/queue-mail':'/send-mail',{method:'POST',body:fd});
+    const res  = await fetch(queue?'/queue-mail':'/send-mail',{method:'POST',body:fd});
     const data = await res.json();
     if(data.success){
-      toast(data.message,'success');
-      if(!queue){document.getElementById('editor').innerHTML='';document.getElementById('subject').value='';document.getElementById('toEmail').value='';attachedFiles=[];renderFileList();}
-      loadQueueBadge();
+      toast(data.message,'ok');
+      // ✅ SIRF files reset hogi, baki sab same rahega
+      files=[];renderChips();
+      document.getElementById('fileIn').value='';
+      updateQBadge();
     } else {
-      toast(data.error,'error');
+      toast(data.error,'err');
     }
-  }catch(e){
-    toast("Server se connect nahi ho paya","error");
+  } catch(e){
+    toast('Server se connect nahi ho paya','err');
   } finally {
-    btn.disabled=false;
-    btn.innerHTML='✉️ Send Now';
+    sendBtn.disabled=false; queueBtn.disabled=false;
+    sendBtn.innerHTML='✉️ Send Now';
+    queueBtn.innerHTML='⏳ Add to Queue';
   }
 }
 
-// ── History ────────────────────────────────────────────────────
+// ── History ───────────────────────────────────────────────────
 async function loadHistory(){
   try{
-    const res = await fetch('/history');
-    const data = await res.json();
-    historyData = data.history||[];
+    const r = await fetch('/history');
+    const d = await r.json();
+    histData = d.history||[];
     renderHistory();
-  }catch(e){console.error(e)}
+  }catch(e){}
 }
-
 function renderHistory(){
-  const tbody = document.getElementById('historyBody');
-  if(!historyData.length){
-    tbody.innerHTML=`<tr><td colspan="7"><div class="empty-state"><div class="icon">📭</div><p>Abhi tak koi mail nahi bheja</p></div></td></tr>`;
+  const tb = document.getElementById('histBody');
+  if(!histData.length){
+    tb.innerHTML=`<tr><td colspan="6"><div class="empty"><div class="ei">📭</div><p>Koi mail nahi bheja abhi tak</p></div></td></tr>`;
     return;
   }
-  tbody.innerHTML = historyData.map(h=>`
+  tb.innerHTML = histData.map(h=>`
     <tr>
-      <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${h.toEmail}">${h.toEmail}</td>
-      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h.subject}</td>
-      <td><span style="text-transform:capitalize">${h.provider||'gmail'}</span></td>
-      <td>${h.attachmentCount>0?`📎 ${h.attachmentCount}`:'—'}</td>
-      <td style="color:var(--muted);white-space:nowrap">${h.sentAt?new Date(h.sentAt).toLocaleString('hi-IN',{hour12:true,month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'—'}</td>
-      <td><span class="status-pill status-${h.status}">${statusIcon(h.status)} ${h.status}</span></td>
-      <td><button class="btn btn-danger btn-sm" onclick="deleteHistory('${h.id}')">✕</button></td>
+      <td style="font-size:12px;color:var(--muted)">${h.senderName||h.senderEmail.split('@')[0]}</td>
+      <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${h.toEmail}">${h.toEmail.split('\n')[0]}${h.toEmail.split('\n').length>1?' +'+( h.toEmail.split('\n').length-1):''}
+      </td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h.subject}</td>
+      <td style="color:var(--muted);font-size:12px;white-space:nowrap">${h.sentAt?fmtDate(h.sentAt):'—'}</td>
+      <td><span class="pill p-${h.status}">${sIcon(h.status)} ${h.status}</span></td>
+      <td><button class="btn btn-danger btn-sm" onclick="delHistory('${h.id}')">✕</button></td>
     </tr>`).join('');
 }
-
-function statusIcon(s){return{sent:'✅',failed:'❌',queued:'⏳',sending:'🔄'}[s]||''}
-
-async function deleteHistory(id){
+function fmtDate(iso){
+  const d=new Date(iso);
+  return d.toLocaleString('en-IN',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:true});
+}
+function sIcon(s){return{sent:'✅',failed:'❌',queued:'⏳',sending:'🔄'}[s]||''}
+async function delHistory(id){
   await fetch(`/history/${id}`,{method:'DELETE'});
-  historyData = historyData.filter(h=>h.id!==id);
+  histData=histData.filter(h=>h.id!==id);
   renderHistory();
 }
 
-// ── Queue ──────────────────────────────────────────────────────
-async function loadQueueStatus(){
+// ── Queue ─────────────────────────────────────────────────────
+async function loadQueue(){
   try{
-    const res = await fetch('/queue-status');
-    const data = await res.json();
-    document.getElementById('queueStatusText').textContent =
-      `${data.queued} mail(s) queue mein hain. Status: ${data.processing?'⏳ Processing...':'✅ Idle'}`;
-    loadQueueBadge(data.queued);
-
-    const qBody = document.getElementById('queueBody');
-    const queued = historyData.filter(h=>h.status==='queued'||h.status==='sending');
+    const r=await fetch('/queue-status');
+    const d=await r.json();
+    document.getElementById('qStatusText').textContent=
+      `${d.queued} mail(s) queue mein — ${d.processing?'⏳ Processing...':'✅ Idle'}`;
+    updateQBadge(d.queued);
+    const queued=histData.filter(h=>['queued','sending'].includes(h.status));
+    const tb=document.getElementById('qBody');
     if(!queued.length){
-      qBody.innerHTML=`<tr><td colspan="4"><div class="empty-state"><div class="icon">⏳</div><p>Queue khali hai</p></div></td></tr>`;
+      tb.innerHTML=`<tr><td colspan="4"><div class="empty"><div class="ei">⏳</div><p>Queue khali hai</p></div></td></tr>`;
     } else {
-      qBody.innerHTML = queued.map(h=>`
+      tb.innerHTML=queued.map(h=>`
         <tr>
-          <td>${h.toEmail}</td>
+          <td>${h.toEmail.split('\n')[0]}</td>
           <td>${h.subject}</td>
-          <td style="color:var(--muted)">${new Date(h.sentAt||Date.now()).toLocaleTimeString()}</td>
-          <td><span class="status-pill status-${h.status}">${statusIcon(h.status)} ${h.status}</span></td>
+          <td style="color:var(--muted);font-size:12px">${h.sentAt?fmtDate(h.sentAt):'—'}</td>
+          <td><span class="pill p-${h.status}">${sIcon(h.status)} ${h.status}</span></td>
         </tr>`).join('');
     }
   }catch(e){}
 }
-
-async function loadQueueBadge(count){
+async function updateQBadge(count){
   if(count===undefined){
-    try{const r=await fetch('/queue-status');const d=await r.json();count=d.queued;}catch(e){return;}
+    try{const r=await fetch('/queue-status');const d=await r.json();count=d.queued;}catch(e){return}
   }
-  const badge = document.getElementById('queueBadge');
-  const topBadge = document.getElementById('topQueueBadge');
-  const topNum = document.getElementById('topQueueNum');
-  if(count>0){
-    badge.style.display='';badge.textContent=count;
-    topBadge.style.display='';topNum.textContent=count;
-  } else {
-    badge.style.display='none';topBadge.style.display='none';
-  }
+  const b1=document.getElementById('qBadge');
+  const b2=document.getElementById('topBadge');
+  const b3=document.getElementById('topBadgeNum');
+  if(count>0){b1.style.display='';b1.textContent=count;b2.style.display='';b3.textContent=count;}
+  else{b1.style.display='none';b2.style.display='none';}
 }
 
-// ── Templates ──────────────────────────────────────────────────
+// ── Templates ─────────────────────────────────────────────────
 function renderTemplates(){
-  document.getElementById('templatesGrid').innerHTML = templates.map((t,i)=>`
-    <div class="template-card" onclick="useTemplate(${i})">
+  document.getElementById('tplGrid').innerHTML=TEMPLATES.map((t,i)=>`
+    <div class="tpl-card" onclick="useTpl(${i})">
       <h3>${t.name}</h3>
-      <p>${t.body.replace(/<[^>]+>/g,'').slice(0,80)}...</p>
-      <span class="template-tag tag-${t.tag}">${t.tagLabel}</span>
+      <p>${t.body.replace(/<[^>]+>/g,'').slice(0,70)}...</p>
+      <span class="tpl-tag ${t.tag}">${t.tl}</span>
     </div>`).join('');
 }
-
-function useTemplate(i){
-  const t = templates[i];
-  document.getElementById('subject').value = t.subject;
-  document.getElementById('editor').innerHTML = t.body;
-  showPage('compose');
-  toast(`"${t.name}" template load ho gaya ✓`,'success');
+function useTpl(i){
+  const t=TEMPLATES[i];
+  document.getElementById('subject').value=t.subject;
+  document.getElementById('editor').innerHTML=t.body;
+  go('compose');
+  toast('"'+t.name+'" template load ho gaya ✓','ok');
 }
 
-// ── Settings ───────────────────────────────────────────────────
+// ── Settings ──────────────────────────────────────────────────
 async function checkHealth(){
   try{
-    const r=await fetch('/health');const d=await r.json();
-    document.getElementById('healthResult').textContent =
-      `✅ Server OK — History: ${d.history} mails, Queue: ${d.queued}`;
+    const r=await fetch('/health');
+    const d=await r.json();
+    document.getElementById('healthOut').textContent=
+      `✅ Server OK — History: ${d.history} mails, Queue: ${d.queued} pending`;
   }catch(e){
-    document.getElementById('healthResult').textContent='❌ Server se connect nahi ho paya';
+    document.getElementById('healthOut').textContent='❌ Server se connect nahi ho paya';
   }
 }
 
-// ── Form Helpers ───────────────────────────────────────────────
-function clearForm(){
-  document.getElementById('toEmail').value='';
-  document.getElementById('ccEmail').value='';
-  document.getElementById('bccEmail').value='';
-  document.getElementById('subject').value='';
-  document.getElementById('editor').innerHTML='';
-  attachedFiles=[];renderFileList();
-}
-
-// ── Toast ──────────────────────────────────────────────────────
-let toastTimer;
-function toast(msg,type='info'){
+// ── Toast ─────────────────────────────────────────────────────
+let toastT;
+function toast(msg,type='inf'){
   const el=document.getElementById('toast');
-  el.textContent=msg;el.className='';
+  el.textContent=msg; el.className='';
   void el.offsetWidth;
-  el.className=`show ${type}`;
-  clearTimeout(toastTimer);
-  toastTimer=setTimeout(()=>el.classList.remove('show'),4000);
+  el.className='show '+type;
+  clearTimeout(toastT);
+  toastT=setTimeout(()=>el.classList.remove('show'),4000);
 }
 
-// ── Init ───────────────────────────────────────────────────────
+// ── Init ──────────────────────────────────────────────────────
 renderTemplates();
-setInterval(()=>{loadQueueBadge();},5000);
+setInterval(updateQBadge, 6000);
 </script>
 </body>
 </html>
