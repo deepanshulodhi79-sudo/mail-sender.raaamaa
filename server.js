@@ -30,7 +30,7 @@ let isProcessingQueue = false;
 // ─── Rate Limiting ────────────────────────────────────────────
 const limiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 15,
+  max: 20,
   message: { success: false, error: "Too many requests. Please wait 1 minute." },
   standardHeaders: true,
   legacyHeaders: false,
@@ -38,14 +38,13 @@ const limiter = rateLimit({
 app.use("/send-mail", limiter);
 app.use("/queue-mail", limiter);
 
-// ─── Parse recipients (comma or newline separated) ────────────
+// ─── Parse recipients → array of individual emails ────────────
 function parseRecipients(str) {
-  if (!str) return "";
+  if (!str) return [];
   return str
     .split(/[\n,]+/)
-    .map(e => e.trim())
-    .filter(Boolean)
-    .join(", ");
+    .map(e => e.trim().toLowerCase())
+    .filter(e => e && e.includes("@"));
 }
 
 // ─── Build transporter ────────────────────────────────────────
@@ -70,7 +69,41 @@ function buildTransporter(senderEmail, appPassword, provider = "gmail") {
   return nodemailer.createTransport(configs[provider] || configs.gmail);
 }
 
-// ─── Core send ────────────────────────────────────────────────
+// ─── Send ONE mail to ONE recipient ──────────────────────────
+async function sendToOne(transporter, { senderEmail, senderName, domain, recipient, ccList, bccList, subject, htmlBody, attachments }) {
+  const displayName = senderName || senderEmail.split("@")[0];
+
+  const mailOptions = {
+    from: `"${displayName}" <${senderEmail}>`,
+    to: recipient,
+    subject,
+    html: htmlBody,
+    // Plain text fallback — spam filters check this
+    text: htmlBody.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim(),
+    // Only essential headers — no bulk/marketing signals
+    headers: {
+      "Message-ID": `<${uuidv4()}@${domain}>`,
+      "Date": new Date().toUTCString(),
+    },
+    priority: "normal",
+    // Encode subject properly (handles unicode/Hindi etc)
+    encoding: "utf-8",
+  };
+
+  if (ccList && ccList.length) mailOptions.cc = ccList.join(", ");
+  if (bccList && bccList.length) mailOptions.bcc = bccList.join(", ");
+
+  if (attachments && attachments.length > 0) {
+    mailOptions.attachments = attachments.map(f => ({
+      filename: f.originalname,
+      path: f.path,
+    }));
+  }
+
+  return transporter.sendMail(mailOptions);
+}
+
+// ─── Send to ALL recipients individually ─────────────────────
 async function doSendMail(job) {
   const {
     senderEmail, senderName, appPassword, provider,
@@ -79,46 +112,40 @@ async function doSendMail(job) {
   } = job;
 
   const transporter = buildTransporter(senderEmail, appPassword, provider);
-
-  // Anti-spam: proper from with real name, message-id, date headers
-  const displayName = senderName ? senderName : senderEmail.split("@")[0];
   const domain = senderEmail.split("@")[1] || "mail.com";
 
-  const mailOptions = {
-    from: `"${displayName}" <${senderEmail}>`,
-    to: parseRecipients(toEmail),
-    subject,
-    html: htmlBody,
-    text: htmlBody.replace(/<[^>]+>/g, ""), // plain-text fallback (important for spam)
-    headers: {
-      "X-Mailer": "Mail-Pro/2.0",
-      "Message-ID": `<${uuidv4()}@${domain}>`,
-      "Date": new Date().toUTCString(),
-      "MIME-Version": "1.0",
-      "List-Unsubscribe": `<mailto:${senderEmail}?subject=unsubscribe>`,
-    },
-    priority: "normal",
-  };
+  const toList  = parseRecipients(toEmail);
+  const ccList  = parseRecipients(ccEmail);
+  const bccList = parseRecipients(bccEmail);
 
-  if (ccEmail && ccEmail.trim()) mailOptions.cc = parseRecipients(ccEmail);
-  if (bccEmail && bccEmail.trim()) mailOptions.bcc = parseRecipients(bccEmail);
+  if (toList.length === 0) throw new Error("Koi valid email address nahi mila.");
 
-  if (attachments && attachments.length > 0) {
-    mailOptions.attachments = attachments.map((f) => ({
-      filename: f.originalname,
-      path: f.path,
-    }));
+  const results = { sent: [], failed: [] };
+
+  for (const recipient of toList) {
+    try {
+      await sendToOne(transporter, {
+        senderEmail, senderName, domain,
+        recipient,      // ← ek-ek karke
+        ccList, bccList,
+        subject, htmlBody, attachments,
+      });
+      results.sent.push(recipient);
+      // Delay between sends — Gmail rate limit + spam filter se bachne ke liye
+      if (toList.length > 1) await new Promise(r => setTimeout(r, 2000));
+    } catch (err) {
+      results.failed.push({ email: recipient, error: err.message });
+    }
   }
 
-  const info = await transporter.sendMail(mailOptions);
-
-  // Cleanup
+  // Cleanup attachments after all done
   if (attachments) {
-    attachments.forEach((f) => {
+    attachments.forEach(f => {
       if (fs.existsSync(f.path)) fs.unlinkSync(f.path);
     });
   }
-  return info;
+
+  return results;
 }
 
 // ─── Queue Processor ──────────────────────────────────────────
@@ -131,17 +158,23 @@ async function processQueue() {
     const histItem = mailHistory.find(h => h.id === job.id);
     if (histItem) histItem.status = "sending";
     try {
-      await doSendMail(job);
+      const results = await doSendMail(job);
       job.status = "sent";
       job.sentAt = new Date().toISOString();
-      if (histItem) { histItem.status = "sent"; histItem.sentAt = job.sentAt; }
+      job.results = results;
+      if (histItem) {
+        histItem.status = "sent";
+        histItem.sentAt = job.sentAt;
+        histItem.sentCount = results.sent.length;
+        histItem.failedCount = results.failed.length;
+      }
     } catch (err) {
       job.status = "failed";
       job.error = err.message;
       if (histItem) { histItem.status = "failed"; histItem.error = err.message; }
     }
     mailQueue.shift();
-    await new Promise((r) => setTimeout(r, 1000));
+    await new Promise(r => setTimeout(r, 800));
   }
   isProcessingQueue = false;
 }
@@ -151,29 +184,46 @@ app.get("/health", (req, res) =>
   res.json({ status: "ok", queued: mailQueue.length, history: mailHistory.length })
 );
 
+// Send immediately — individual to each recipient
 app.post("/send-mail", upload.array("attachments", 5), async (req, res) => {
   const { senderEmail, senderName, appPassword, provider, toEmail, ccEmail, bccEmail, subject, htmlBody } = req.body;
+
   if (!senderEmail || !appPassword || !toEmail || !subject || !htmlBody)
     return res.status(400).json({ success: false, error: "Zaroori fields missing hain." });
+
+  const toList = parseRecipients(toEmail);
+  if (toList.length === 0)
+    return res.status(400).json({ success: false, error: "Koi valid email nahi mila To field mein." });
 
   const id = uuidv4();
   const record = {
     id, senderEmail, senderName, provider: provider || "gmail",
-    toEmail, ccEmail, bccEmail, subject,
-    sentAt: new Date().toISOString(), status: "sending",
+    toEmail, subject,
+    sentAt: new Date().toISOString(),
+    status: "sending",
+    totalRecipients: toList.length,
     attachmentCount: req.files ? req.files.length : 0,
   };
   mailHistory.unshift(record);
-  if (mailHistory.length > 100) mailHistory.pop();
+  if (mailHistory.length > 200) mailHistory.pop();
 
   try {
-    await doSendMail({
+    const results = await doSendMail({
       senderEmail, senderName, appPassword, provider: provider || "gmail",
       toEmail, ccEmail, bccEmail, subject, htmlBody,
       attachments: req.files || [],
     });
-    record.status = "sent";
-    res.json({ success: true, message: "✅ Mail bhej diya gaya!", id });
+
+    record.status = results.failed.length === 0 ? "sent" : "partial";
+    record.sentCount = results.sent.length;
+    record.failedCount = results.failed.length;
+    record.failedEmails = results.failed;
+
+    const msg = results.failed.length === 0
+      ? `✅ Sabhi ${results.sent.length} log ko alag-alag mail bhej diya!`
+      : `⚠️ ${results.sent.length} sent, ${results.failed.length} failed.`;
+
+    res.json({ success: true, message: msg, results, id });
   } catch (err) {
     record.status = "failed";
     record.error = err.message;
@@ -181,28 +231,39 @@ app.post("/send-mail", upload.array("attachments", 5), async (req, res) => {
   }
 });
 
+// Add to queue
 app.post("/queue-mail", upload.array("attachments", 5), (req, res) => {
   const { senderEmail, senderName, appPassword, provider, toEmail, ccEmail, bccEmail, subject, htmlBody } = req.body;
+
   if (!senderEmail || !appPassword || !toEmail || !subject || !htmlBody)
     return res.status(400).json({ success: false, error: "Zaroori fields missing hain." });
 
+  const toList = parseRecipients(toEmail);
   const id = uuidv4();
   const job = {
-    id, senderEmail, senderName, appPassword, provider: provider || "gmail",
+    id, senderEmail, senderName, appPassword,
+    provider: provider || "gmail",
     toEmail, ccEmail, bccEmail, subject, htmlBody,
-    attachments: req.files || [], status: "queued",
+    attachments: req.files || [],
+    status: "queued",
     queuedAt: new Date().toISOString(),
+    totalRecipients: toList.length,
   };
   mailQueue.push(job);
   mailHistory.unshift({
     id, senderEmail, senderName, provider: provider || "gmail",
-    toEmail, ccEmail, bccEmail, subject,
+    toEmail, subject,
     sentAt: null, status: "queued",
+    totalRecipients: toList.length,
     attachmentCount: req.files ? req.files.length : 0,
   });
-  if (mailHistory.length > 100) mailHistory.pop();
+  if (mailHistory.length > 200) mailHistory.pop();
   processQueue();
-  res.json({ success: true, message: `📬 Queue mein add! Position: ${mailQueue.length}`, id });
+  res.json({
+    success: true,
+    message: `📬 ${toList.length} recipient(s) ko alag-alag queue mein add! Position: ${mailQueue.length}`,
+    id,
+  });
 });
 
 app.get("/history", (req, res) => res.json({ success: true, history: mailHistory }));
@@ -210,7 +271,7 @@ app.get("/queue-status", (req, res) =>
   res.json({ success: true, queued: mailQueue.length, processing: isProcessingQueue })
 );
 app.delete("/history/:id", (req, res) => {
-  const idx = mailHistory.findIndex((h) => h.id === req.params.id);
+  const idx = mailHistory.findIndex(h => h.id === req.params.id);
   if (idx !== -1) mailHistory.splice(idx, 1);
   res.json({ success: true });
 });
