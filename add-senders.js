@@ -38,7 +38,7 @@ async function addToImprovMX(alias) {
       alias,
       forward: "raydyawear@gmail.com"
     });
-    const encoded = Buffer.from(`api:${process.env.IMPROVMX_KEY||"sk_6bac10963b5b4f4399cf72ae1a0b31a8"}`).toString("base64");
+    const encoded = Buffer.from(`api:${process.env.IMPROVMX_KEY||"sk_508330bd414c48e7817da35d838436ad"}`).toString("base64");
     const req = https.request({
       hostname: "api.improvmx.com",
       path: `/v3/domains/${DOMAIN}/aliases/`,
