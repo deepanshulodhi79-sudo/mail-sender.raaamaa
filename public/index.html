@@ -452,7 +452,33 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
           </div>
           <div class="field">
             <label>From Email <span style="color:var(--red)">*</span></label>
-            <input id="senderEmail" type="email" placeholder="hello@clientboost.in"/>
+            <select id="senderEmail">
+              <option value="hello@clientboost.in">hello@clientboost.in</option>
+              <option value="info@clientboost.in">info@clientboost.in</option>
+              <option value="support@clientboost.in">support@clientboost.in</option>
+              <option value="sales@clientboost.in">sales@clientboost.in</option>
+              <option value="contact@clientboost.in">contact@clientboost.in</option>
+              <option value="admin@clientboost.in">admin@clientboost.in</option>
+              <option value="team@clientboost.in">team@clientboost.in</option>
+              <option value="business@clientboost.in">business@clientboost.in</option>
+              <option value="marketing@clientboost.in">marketing@clientboost.in</option>
+              <option value="service@clientboost.in">service@clientboost.in</option>
+              <option value="help@clientboost.in">help@clientboost.in</option>
+              <option value="enquiry@clientboost.in">enquiry@clientboost.in</option>
+              <option value="work@clientboost.in">work@clientboost.in</option>
+              <option value="office@clientboost.in">office@clientboost.in</option>
+              <option value="mail@clientboost.in">mail@clientboost.in</option>
+              <option value="connect@clientboost.in">connect@clientboost.in</option>
+              <option value="network@clientboost.in">network@clientboost.in</option>
+              <option value="growth@clientboost.in">growth@clientboost.in</option>
+              <option value="boost@clientboost.in">boost@clientboost.in</option>
+              <option value="client@clientboost.in">client@clientboost.in</option>
+              <option value="partner@clientboost.in">partner@clientboost.in</option>
+              <option value="media@clientboost.in">media@clientboost.in</option>
+              <option value="outreach@clientboost.in">outreach@clientboost.in</option>
+              <option value="digital@clientboost.in">digital@clientboost.in</option>
+              <option value="agency@clientboost.in">agency@clientboost.in</option>
+            </select>
           </div>
         </div>
         <div class="field-hint" style="margin-top:-4px">
@@ -488,7 +514,19 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
 
         <div class="field">
           <label>Body</label>
-          <div class="toolbar">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <span style="font-size:11.5px;font-weight:500;color:var(--muted);letter-spacing:.2px">BODY</span>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin:0">
+              <span style="font-size:12px;color:var(--muted)">Plain Text Mode</span>
+              <div style="position:relative;width:36px;height:20px">
+                <input type="checkbox" id="plainMode" onchange="togglePlainMode()" style="opacity:0;width:0;height:0;position:absolute"/>
+                <span id="toggleTrack" style="position:absolute;inset:0;background:var(--border);border-radius:99px;transition:.2s;cursor:pointer"></span>
+                <span id="toggleThumb" style="position:absolute;left:2px;top:2px;width:16px;height:16px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)"></span>
+              </div>
+              <span id="plainLabel" style="font-size:11px;color:var(--muted)">OFF</span>
+            </label>
+          </div>
+          <div class="toolbar" id="editorToolbar">
             <button class="tb" onclick="fmt('bold')"><b>B</b></button>
             <button class="tb" onclick="fmt('italic')"><i>I</i></button>
             <button class="tb" onclick="fmt('underline')"><u>U</u></button>
@@ -523,6 +561,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
           </div>
           <div id="editor" contenteditable="true" spellcheck="true"
                data-placeholder="Apna sandesh yahaan likhein..."></div>
+          <textarea id="plainEditor" style="display:none;width:100%;padding:13px 14px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;line-height:1.75;min-height:200px;outline:none;resize:vertical;color:var(--text)" placeholder="Plain text likho — inbox mein jaayega..."></textarea>
         </div>
 
         <div class="field">
@@ -650,6 +689,39 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
 <div id="toast"></div>
 
 <script>
+// ── Plain Text Toggle ────────────────────────────────────────
+function togglePlainMode() {
+  const isPlain = document.getElementById('plainMode').checked;
+  const track   = document.getElementById('toggleTrack');
+  const thumb   = document.getElementById('toggleThumb');
+  const label   = document.getElementById('plainLabel');
+  const toolbar = document.getElementById('editorToolbar');
+  const editor  = document.getElementById('editor');
+  const plain   = document.getElementById('plainEditor');
+
+  if (isPlain) {
+    // Switch to plain text
+    plain.value = editor.innerText;
+    editor.style.display = 'none';
+    toolbar.style.display = 'none';
+    plain.style.display = 'block';
+    track.style.background = 'var(--accent)';
+    thumb.style.left = '18px';
+    label.textContent = 'ON';
+    label.style.color = 'var(--accent)';
+  } else {
+    // Switch back to rich text
+    editor.innerHTML = plain.value.replace(/\n/g, '<br>');
+    plain.style.display = 'none';
+    toolbar.style.display = '';
+    editor.style.display = 'block';
+    track.style.background = 'var(--border)';
+    thumb.style.left = '2px';
+    label.textContent = 'OFF';
+    label.style.color = 'var(--muted)';
+  }
+}
+
 // ── Data ──────────────────────────────────────────────────────
 let files = [];
 let histData = [];
@@ -743,7 +815,10 @@ async function sendMail(queue){
   const ccEmail     = document.getElementById('ccEmail').value.trim();
   const bccEmail    = document.getElementById('bccEmail').value.trim();
   const subject     = document.getElementById('subject').value.trim();
-  const htmlBody    = document.getElementById('editor').innerHTML.trim();
+  const isPlain  = document.getElementById('plainMode').checked;
+  const htmlBody = isPlain
+    ? document.getElementById('plainEditor').value.trim()
+    : document.getElementById('editor').innerHTML.trim();
 
   if(!senderEmail) return toast('From email daalna zaroori hai','err');
   if(!toEmail)    return toast('To field khali hai','err');
@@ -766,6 +841,7 @@ async function sendMail(queue){
   fd.append('bccEmail',    bccEmail);
   fd.append('subject',     subject);
   fd.append('htmlBody',    htmlBody);
+  fd.append('plainMode',   isPlain ? 'true' : 'false');
   files.forEach(f=>fd.append('attachments',f));
 
   try{
