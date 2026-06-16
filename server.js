@@ -38,7 +38,28 @@ const limiter = rateLimit({
 app.use("/send-mail", limiter);
 app.use("/queue-mail", limiter);
 
-// ─── Parse recipients → array of individual emails ────────────
+// ─── Brevo SMTP config ────────────────────────────────────────
+const BREVO = {
+  host: "smtp-relay.brevo.com",
+  port: 587,
+  user: "aea29a001@smtp-brevo.com",
+  pass: "GkBWtbZ7ANxr1MY8",
+};
+
+// ─── Transporter — Brevo SMTP ─────────────────────────────────
+function buildTransporter() {
+  return nodemailer.createTransport({
+    host: BREVO.host,
+    port: BREVO.port,
+    secure: false,
+    auth: {
+      user: BREVO.user,
+      pass: BREVO.pass,
+    },
+  });
+}
+
+// ─── Parse recipients → clean email array ────────────────────
 function parseRecipients(str) {
   if (!str) return [];
   return str
@@ -47,46 +68,25 @@ function parseRecipients(str) {
     .filter(e => e && e.includes("@"));
 }
 
-// ─── Build transporter ────────────────────────────────────────
-function buildTransporter(senderEmail, appPassword, provider = "gmail") {
-  const configs = {
-    gmail: {
-      service: "gmail",
-      auth: { user: senderEmail, pass: appPassword },
-    },
-    outlook: {
-      host: "smtp-mail.outlook.com",
-      port: 587,
-      secure: false,
-      auth: { user: senderEmail, pass: appPassword },
-      tls: { ciphers: "SSLv3" },
-    },
-    yahoo: {
-      service: "yahoo",
-      auth: { user: senderEmail, pass: appPassword },
-    },
-  };
-  return nodemailer.createTransport(configs[provider] || configs.gmail);
-}
-
 // ─── Send ONE mail to ONE recipient ──────────────────────────
-async function sendToOne(transporter, { senderEmail, senderName, domain, recipient, ccList, bccList, subject, htmlBody, attachments }) {
-  const displayName = senderName || senderEmail.split("@")[0];
+async function sendToOne(transporter, {
+  senderEmail, senderName, domain,
+  recipient, ccList, bccList,
+  subject, htmlBody, attachments,
+}) {
+  const displayName = senderName || "ClientBoost";
 
   const mailOptions = {
-    from: `"${displayName}" <${senderEmail}>`,
+    from: `"${displayName}" <${senderEmail}>`,   // e.g. "Rahul" <hello@clientboost.in>
     to: recipient,
+    replyTo: senderEmail,
     subject,
     html: htmlBody,
-    // Plain text fallback — spam filters check this
     text: htmlBody.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim(),
-    // Only essential headers — no bulk/marketing signals
     headers: {
       "Message-ID": `<${uuidv4()}@${domain}>`,
       "Date": new Date().toUTCString(),
     },
-    priority: "normal",
-    // Encode subject properly (handles unicode/Hindi etc)
     encoding: "utf-8",
   };
 
@@ -106,13 +106,13 @@ async function sendToOne(transporter, { senderEmail, senderName, domain, recipie
 // ─── Send to ALL recipients individually ─────────────────────
 async function doSendMail(job) {
   const {
-    senderEmail, senderName, appPassword, provider,
+    senderEmail, senderName,
     toEmail, ccEmail, bccEmail,
     subject, htmlBody, attachments,
   } = job;
 
-  const transporter = buildTransporter(senderEmail, appPassword, provider);
-  const domain = senderEmail.split("@")[1] || "mail.com";
+  const transporter = buildTransporter();
+  const domain = "clientboost.in";
 
   const toList  = parseRecipients(toEmail);
   const ccList  = parseRecipients(ccEmail);
@@ -126,19 +126,17 @@ async function doSendMail(job) {
     try {
       await sendToOne(transporter, {
         senderEmail, senderName, domain,
-        recipient,      // ← ek-ek karke
-        ccList, bccList,
+        recipient, ccList, bccList,
         subject, htmlBody, attachments,
       });
       results.sent.push(recipient);
-      // Delay between sends — Gmail rate limit + spam filter se bachne ke liye
       if (toList.length > 1) await new Promise(r => setTimeout(r, 2000));
     } catch (err) {
       results.failed.push({ email: recipient, error: err.message });
     }
   }
 
-  // Cleanup attachments after all done
+  // Cleanup attachments
   if (attachments) {
     attachments.forEach(f => {
       if (fs.existsSync(f.path)) fs.unlinkSync(f.path);
@@ -161,7 +159,6 @@ async function processQueue() {
       const results = await doSendMail(job);
       job.status = "sent";
       job.sentAt = new Date().toISOString();
-      job.results = results;
       if (histItem) {
         histItem.status = "sent";
         histItem.sentAt = job.sentAt;
@@ -170,7 +167,6 @@ async function processQueue() {
       }
     } catch (err) {
       job.status = "failed";
-      job.error = err.message;
       if (histItem) { histItem.status = "failed"; histItem.error = err.message; }
     }
     mailQueue.shift();
@@ -184,11 +180,10 @@ app.get("/health", (req, res) =>
   res.json({ status: "ok", queued: mailQueue.length, history: mailHistory.length })
 );
 
-// Send immediately — individual to each recipient
 app.post("/send-mail", upload.array("attachments", 5), async (req, res) => {
-  const { senderEmail, senderName, appPassword, provider, toEmail, ccEmail, bccEmail, subject, htmlBody } = req.body;
+  const { senderEmail, senderName, toEmail, ccEmail, bccEmail, subject, htmlBody } = req.body;
 
-  if (!senderEmail || !appPassword || !toEmail || !subject || !htmlBody)
+  if (!senderEmail || !toEmail || !subject || !htmlBody)
     return res.status(400).json({ success: false, error: "Zaroori fields missing hain." });
 
   const toList = parseRecipients(toEmail);
@@ -197,7 +192,7 @@ app.post("/send-mail", upload.array("attachments", 5), async (req, res) => {
 
   const id = uuidv4();
   const record = {
-    id, senderEmail, senderName, provider: provider || "gmail",
+    id, senderEmail, senderName,
     toEmail, subject,
     sentAt: new Date().toISOString(),
     status: "sending",
@@ -209,15 +204,15 @@ app.post("/send-mail", upload.array("attachments", 5), async (req, res) => {
 
   try {
     const results = await doSendMail({
-      senderEmail, senderName, appPassword, provider: provider || "gmail",
-      toEmail, ccEmail, bccEmail, subject, htmlBody,
+      senderEmail, senderName,
+      toEmail, ccEmail, bccEmail,
+      subject, htmlBody,
       attachments: req.files || [],
     });
 
     record.status = results.failed.length === 0 ? "sent" : "partial";
     record.sentCount = results.sent.length;
     record.failedCount = results.failed.length;
-    record.failedEmails = results.failed;
 
     const msg = results.failed.length === 0
       ? `✅ Sabhi ${results.sent.length} log ko alag-alag mail bhej diya!`
@@ -226,24 +221,22 @@ app.post("/send-mail", upload.array("attachments", 5), async (req, res) => {
     res.json({ success: true, message: msg, results, id });
   } catch (err) {
     record.status = "failed";
-    record.error = err.message;
     res.status(500).json({ success: false, error: "❌ " + err.message });
   }
 });
 
-// Add to queue
 app.post("/queue-mail", upload.array("attachments", 5), (req, res) => {
-  const { senderEmail, senderName, appPassword, provider, toEmail, ccEmail, bccEmail, subject, htmlBody } = req.body;
+  const { senderEmail, senderName, toEmail, ccEmail, bccEmail, subject, htmlBody } = req.body;
 
-  if (!senderEmail || !appPassword || !toEmail || !subject || !htmlBody)
+  if (!senderEmail || !toEmail || !subject || !htmlBody)
     return res.status(400).json({ success: false, error: "Zaroori fields missing hain." });
 
   const toList = parseRecipients(toEmail);
   const id = uuidv4();
   const job = {
-    id, senderEmail, senderName, appPassword,
-    provider: provider || "gmail",
-    toEmail, ccEmail, bccEmail, subject, htmlBody,
+    id, senderEmail, senderName,
+    toEmail, ccEmail, bccEmail,
+    subject, htmlBody,
     attachments: req.files || [],
     status: "queued",
     queuedAt: new Date().toISOString(),
@@ -251,7 +244,7 @@ app.post("/queue-mail", upload.array("attachments", 5), (req, res) => {
   };
   mailQueue.push(job);
   mailHistory.unshift({
-    id, senderEmail, senderName, provider: provider || "gmail",
+    id, senderEmail, senderName,
     toEmail, subject,
     sentAt: null, status: "queued",
     totalRecipients: toList.length,
@@ -261,7 +254,7 @@ app.post("/queue-mail", upload.array("attachments", 5), (req, res) => {
   processQueue();
   res.json({
     success: true,
-    message: `📬 ${toList.length} recipient(s) ko alag-alag queue mein add! Position: ${mailQueue.length}`,
+    message: `📬 ${toList.length} recipient(s) queue mein add! Position: ${mailQueue.length}`,
     id,
   });
 });
