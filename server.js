@@ -8,6 +8,7 @@ const fs = require("fs");
 const { v4: uuidv4 } = require("uuid");
 
 const app = express();
+app.set("trust proxy", 1);
 app.use(express.json());
 app.use(cors());
 app.use(express.static(path.join(__dirname, "public")));
