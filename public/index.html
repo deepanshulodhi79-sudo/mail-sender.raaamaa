@@ -445,27 +445,18 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
 
       <div class="card">
         <div class="card-title">Sender Account</div>
-        <div class="row-3">
+        <div class="row-2">
           <div class="field">
             <label>Your Name</label>
             <input id="senderName" type="text" placeholder="e.g. Rahul Sharma"/>
           </div>
           <div class="field">
-            <label>Email ID</label>
-            <input id="senderEmail" type="email" placeholder="you@gmail.com"/>
-          </div>
-          <div class="field">
-            <label>App Password</label>
-            <input id="appPassword" type="password" placeholder="xxxx xxxx xxxx xxxx"/>
+            <label>From Email <span style="color:var(--red)">*</span></label>
+            <input id="senderEmail" type="email" placeholder="hello@clientboost.in"/>
           </div>
         </div>
-        <div class="field">
-          <label>Provider</label>
-          <select id="provider">
-            <option value="gmail">Gmail</option>
-            <option value="outlook">Outlook / Hotmail</option>
-            <option value="yahoo">Yahoo Mail</option>
-          </select>
+        <div class="field-hint" style="margin-top:-4px">
+          💡 Sirf <strong>clientboost.in</strong> domain wali email use karo — mail Brevo se jaayega
         </div>
       </div>
 
@@ -617,26 +608,15 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
       <div class="sec-head"><h2>Settings & Help</h2></div>
 
       <div class="card">
-        <div class="card-title">Gmail App Password</div>
+        <div class="card-title">⚡ Brevo SMTP — Connected</div>
         <div class="setting-row">
           <div>
-            <div class="setting-label">Kaise banayein?</div>
-            <div class="setting-desc">
-              1. Google Account → Security → 2-Step Verification ON karein<br>
-              2. <a href="https://myaccount.google.com/apppasswords" target="_blank" style="color:var(--blue)">myaccount.google.com/apppasswords</a> par jaayein<br>
-              3. App name "Mail Pro" daalein → Create<br>
-              4. Jo 16-character password mile, wahi use karein
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Outlook App Password</div>
-        <div class="setting-row">
-          <div>
-            <div class="setting-desc">
-              Microsoft Account → Security → Advanced Security Options → App Passwords section mein banayein
+            <div class="setting-desc" style="line-height:2">
+              ✅ <strong>smtp-relay.brevo.com</strong> se mail jaata hai<br>
+              ✅ Domain: <strong>clientboost.in</strong><br>
+              ✅ <strong>mailed-by: clientboost.in</strong> dikhega — Gmail nahi<br>
+              ✅ Free plan: 300 mails/day<br>
+              📊 Stats dekhne ke liye → <a href="https://app.brevo.com" target="_blank" style="color:var(--blue)">app.brevo.com</a>
             </div>
           </div>
         </div>
@@ -759,15 +739,13 @@ function removeFile(i){files.splice(i,1);renderChips()}
 async function sendMail(queue){
   const senderName  = document.getElementById('senderName').value.trim();
   const senderEmail = document.getElementById('senderEmail').value.trim();
-  const appPassword = document.getElementById('appPassword').value.trim();
-  const provider    = document.getElementById('provider').value;
   const toEmail     = document.getElementById('toEmail').value.trim();
   const ccEmail     = document.getElementById('ccEmail').value.trim();
   const bccEmail    = document.getElementById('bccEmail').value.trim();
   const subject     = document.getElementById('subject').value.trim();
   const htmlBody    = document.getElementById('editor').innerHTML.trim();
 
-  if(!senderEmail||!appPassword) return toast('Sender email aur App Password daalna zaroori hai','err');
+  if(!senderEmail) return toast('From email daalna zaroori hai','err');
   if(!toEmail)    return toast('To field khali hai','err');
   if(!subject)    return toast('Subject daalna zaroori hai','err');
   if(!htmlBody||htmlBody==='<br>') return toast('Message body khali hai','err');
@@ -783,8 +761,6 @@ async function sendMail(queue){
   const fd = new FormData();
   fd.append('senderName',  senderName);
   fd.append('senderEmail', senderEmail);
-  fd.append('appPassword', appPassword);
-  fd.append('provider',    provider);
   fd.append('toEmail',     toEmail);
   fd.append('ccEmail',     ccEmail);
   fd.append('bccEmail',    bccEmail);
