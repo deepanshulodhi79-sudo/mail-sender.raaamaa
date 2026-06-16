@@ -47,7 +47,7 @@ function makeTransporter() {
     secure: false,
     auth: {
       user: "aea29a001@smtp-brevo.com",
-      pass: "GkBWtbZ7ANxr1MY8",
+      pass: "xsmtpsib-c96aa4f6cd79e22c68cba95fe8f2d1d479361852212f9277b8b9456b66a23941-vIDDWHrbJqiYFBOb",
     },
   });
 }
