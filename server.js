@@ -6,6 +6,7 @@ const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
 const { v4: uuidv4 } = require("uuid");
+const { addAllSenders } = require("./add-senders");
 
 const app = express();
 app.set("trust proxy", 1);
@@ -59,25 +60,32 @@ function parseEmails(str) {
 }
 
 // ─── Send one email to one recipient ─────────────────────────
-async function sendOne(transporter, { senderName, senderEmail, to, cc, bcc, subject, html }) {
-  const name = senderName || "ClientBoost";
-  await transporter.sendMail({
+async function sendOne(transporter, { senderName, senderEmail, to, cc, bcc, subject, html, plainMode }) {
+  const name    = senderName || "ClientBoost";
+  const rawText = html.replace(/<[^>]+>/g, "").replace(/&nbsp;/g," ").replace(/\s+/g, " ").trim();
+
+  const mailOpts = {
     from:    `"${name}" <${senderEmail}>`,
     to,
     cc:      cc.length  ? cc.join(",")  : undefined,
     bcc:     bcc.length ? bcc.join(",") : undefined,
     subject,
-    html,
-    text: html.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim(),
+    // Plain mode = sirf text, koi HTML nahi → inbox mein jaata hai
+    ...(plainMode
+      ? { text: rawText }
+      : { html, text: rawText }
+    ),
     headers: {
       "Message-ID": `<${uuidv4()}@clientboost.in>`,
     },
-  });
+  };
+
+  await transporter.sendMail(mailOpts);
 }
 
 // ─── Send to all recipients one by one ───────────────────────
 async function sendAll(job) {
-  const { senderName, senderEmail, toEmail, ccEmail, bccEmail, subject, htmlBody, attachments } = job;
+  const { senderName, senderEmail, toEmail, ccEmail, bccEmail, subject, htmlBody, attachments, plainMode } = job;
 
   const toList  = parseEmails(toEmail);
   const ccList  = parseEmails(ccEmail);
@@ -94,7 +102,7 @@ async function sendAll(job) {
 
   for (const to of toList) {
     try {
-      await sendOne(transporter, { senderName, senderEmail, to, cc: ccList, bcc: bccList, subject, html: htmlBody });
+      await sendOne(transporter, { senderName, senderEmail, to, cc: ccList, bcc: bccList, subject, html: htmlBody, plainMode: job.plainMode });
       sent.push(to);
       console.log(`✅ Sent to: ${to}`);
       if (toList.length > 1) await new Promise(r => setTimeout(r, 1500));
@@ -138,9 +146,9 @@ app.get("/health", (req, res) =>
 
 // Send now
 app.post("/send-mail", upload.array("attachments", 5), async (req, res) => {
-  const { senderEmail, senderName, toEmail, ccEmail, bccEmail, subject, htmlBody } = req.body;
+  const { senderEmail, senderName, toEmail, ccEmail, bccEmail, subject, htmlBody, plainMode } = req.body;
 
-  console.log("📨 Send request:", { senderEmail, toEmail, subject });
+  console.log("📨 Send request:", { senderEmail, toEmail, subject, plainMode });
 
   if (!senderEmail || !toEmail || !subject || !htmlBody)
     return res.status(400).json({ success: false, error: "Zaroori fields missing hain." });
@@ -151,7 +159,7 @@ app.post("/send-mail", upload.array("attachments", 5), async (req, res) => {
   if (mailHistory.length > 200) mailHistory.pop();
 
   try {
-    const results = await sendAll({ senderName, senderEmail, toEmail, ccEmail, bccEmail, subject, htmlBody, attachments: req.files || [] });
+    const results = await sendAll({ senderName, senderEmail, toEmail, ccEmail, bccEmail, subject, htmlBody, plainMode: plainMode === "true", attachments: req.files || [] });
     record.status     = results.failed.length === 0 ? "sent" : "partial";
     record.sentCount  = results.sent.length;
     record.failedCount = results.failed.length;
@@ -192,6 +200,9 @@ app.delete("/history/:id", (req, res) => {
   if (i !== -1) mailHistory.splice(i, 1);
   res.json({ success: true });
 });
+
+// Run once on startup — Brevo mein sab senders add karo
+addAllSenders();
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`✅ Mail Pro running on port ${PORT}`));
